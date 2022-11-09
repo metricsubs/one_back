@@ -56,7 +56,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: one_back_linux_amd64
-          path: one_back
+          path: .
 
       - name: deploy file
         uses: wlixcc/SFTP-Deploy-Action@v1.2.4
