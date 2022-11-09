@@ -84,4 +84,5 @@ jobs:
             mkdir -p /root/projects/one_back
             mv /tmp/one_back /root/projects/one_back/
             chmod +x /root/projects/one_back/one_back
+            systemctl restart one_back
             
