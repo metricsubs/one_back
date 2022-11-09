@@ -58,11 +58,6 @@ jobs:
           name: one_back_linux_amd64
           path: .
 
-      - name: Test
-        run: |
-          ls
-          ./one_back --version
-
       - name: deploy file
         uses: wlixcc/SFTP-Deploy-Action@v1.2.4
         with:
@@ -71,7 +66,7 @@ jobs:
           password: ${{ secrets.DEPLOY_SSH_PASSWORD }}
           port: ${{ secrets.DEPLOY_SSH_PORT }}
           sftp_only: true
-          local_path: ${{steps.download.outputs.download-path}}
+          local_path: './one_back'
           remote_path: '/tmp'
           sftpArgs: '-o ConnectTimeout=5'
 
