@@ -1,0 +1,83 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "*" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+          check-latest: true
+          cache: true
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Test
+        run: go test -v ./...
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: one_back_linux_amd64
+          path: one_back
+
+      - name: Get tag name
+        if: startsWith(github.ref, 'refs/tags/')
+        run: echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: Package
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          zip -r one_back_${TAG}.zip one_back
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          body: |
+            One Back ${{ env.TAG }}
+          files: |
+            one_back_${{ env.TAG }}.zip
+            LICENSE
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: one_back_linux_amd64
+          path: one_back
+
+      - name: deploy file
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+        with:
+          server: ${{ secrets.DEPLOY_SSH_HOST }}
+          username: ${{ secrets.DEPLOY_SSH_USERNAME }}
+          password: ${{ secrets.DEPLOY_SSH_PASSWORD }}
+          port: ${{ secrets.DEPLOY_SSH_PORT }}
+          sftp_only: true
+          local_path: './one_back'
+          remote_path: '/tmp'
+          sftpArgs: '-o ConnectTimeout=5'
+
+      - name: executing remote ssh commands using password
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEPLOY_SSH_HOST }}
+          username: ${{ secrets.DEPLOY_SSH_USERNAME }}
+          password: ${{ secrets.DEPLOY_SSH_PASSWORD }}
+          port: ${{ secrets.DEPLOY_SSH_PORT }}
+          script: |
+            mkdir -p /root/projects/one_back
+            mv /tmp/one_back /root/projects/one_back/
+            chmod +x /root/projects/one_back/one_back
+            
