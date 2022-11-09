@@ -58,6 +58,11 @@ jobs:
           name: one_back_linux_amd64
           path: .
 
+      - name: Test
+        run: |
+          ls
+          ./one_back --version
+
       - name: deploy file
         uses: wlixcc/SFTP-Deploy-Action@v1.2.4
         with:
