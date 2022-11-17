@@ -1,9 +1,8 @@
 package main
 
 import (
-	"log"
-
 	"github.com/pocketbase/pocketbase"
+	"log"
 )
 
 func main() {
